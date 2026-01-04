@@ -1,0 +1,62 @@
+services:
+  # --- 1. База данных (PostgreSQL) ---
+  # Используем одну инстанцию Postgres, но создадим разные БД для сервисов позже
+  postgres:
+    image: postgres:16-alpine
+    container_name: cinesync_db
+    ports:
+      - "5432:5432"  # Открываем порт наружу, чтобы ты мог подключиться через Database Tool в PyCharm
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin_password
+      # Создаем дефолтную базу, но микросервисы будут создавать свои через код
+      POSTGRES_DB: cinesync_default
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - cinesync_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- 2. Кэш (Redis) ---
+  redis:
+    image: redis:7-alpine
+    container_name: cinesync_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - cinesync_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- 3. Брокер сообщений (RabbitMQ) ---
+  # Нужен для асинхронного общения между сервисами
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: cinesync_broker
+    ports:
+      - "5672:5672"   # Порт для общения сервисов
+      - "15672:15672" # Веб-интерфейс управления (логин/пароль: guest/guest)
+    networks:
+      - cinesync_net
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+# --- Тома (Volumes) для хранения данных ---
+volumes:
+  postgres_data:
+
+# --- Сеть ---
+# Все сервисы будут видеть друг друга по именам (postgres, redis, rabbitmq)
+networks:
+  cinesync_net:
+    driver: bridge
