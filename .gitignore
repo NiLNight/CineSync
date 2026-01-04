@@ -1,0 +1,19 @@
+# Python & Poetry
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+poetry.lock
+
+# Environment Variables
+.env
+.env.*
+
+# IDE settings
+.idea/
+.vscode/
+
+# OS specific
+.DS_Store
+Thumbs.db
