@@ -19,6 +19,23 @@ services:
     networks:
       - cinesync_net
 
+  user_service:
+    build:
+      context: ./user_service
+      dockerfile: Dockerfile
+    container_name: cinesync_user_service
+    ports:
+      - "8002:8000"
+    env_file:
+      - ./user_service/.env
+    environment:
+      # Внутри Docker мы обращаемся к базе по имени контейнера, а не localhost/127.0.0.1
+      - DATABASE_URL=postgresql+asyncpg://admin:admin_password@postgres:5432/cinesync_default
+    depends_on:
+      - postgres
+    networks:
+      - cinesync_net
+
   # === Infrastructure ===
 
   postgres:
