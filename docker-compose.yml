@@ -25,14 +25,16 @@ services:
       dockerfile: Dockerfile
     container_name: cinesync_user_service
     ports:
-      - "8002:8000"
+      - "8002:8000"  # На хосте порт 8002
     env_file:
       - ./user_service/.env
     environment:
-      # Внутри Docker мы обращаемся к базе по имени контейнера, а не localhost/127.0.0.1
+      # ПЕРЕОПРЕДЕЛЯЕМ хост базы данных для Docker-сети
+      # postgres - это имя сервиса БД в этом файле
       - DATABASE_URL=postgresql+asyncpg://admin:admin_password@postgres:5432/cinesync_default
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - cinesync_net
 
