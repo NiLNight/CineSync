@@ -17,6 +17,26 @@ class MovieShort(BaseModel):
     overview: str = Field(default="")
     vote_average: float
 
+class MovieDetail(BaseModel):
+    """
+    Полная информация о фильме.
+
+    Attributes:
+        id (int): Уникальный идентификатор фильма в TMDB.
+        title (str): Название фильма.
+        release_date (str | None): Дата выхода фильма. Может быть None.
+        overview (str): Краткое описание сюжета.
+        vote_average (float): Средняя оценка фильма.
+        poster_path (str | None): Путь к постеру фильма.
+    """
+    id: int
+    title: str
+    release_date: str | None = None
+    overview: str = Field(default="")
+    vote_average: float
+    poster_path: str | None = None
+
+
 class MovieSearchResponse(BaseModel):
     """
     Ответ на запрос поиска фильмов.

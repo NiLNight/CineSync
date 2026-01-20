@@ -81,3 +81,58 @@ class MovieService:
             await self.redis.set(cache_key, json.dumps(data), ex=300)
 
         return data
+
+    async def get_movie_by_id(self, movie_id: int) -> dict | None:
+        """
+        Получает детальную информацию о фильме по его ID с использованием кэширования.
+
+        Алгоритм работы:
+        1. Формирование ключа кэша для конкретного фильма
+        2. Проверка наличия результатов в кэше Redis
+        3. Если кэш отсутствует - запрос к TMDB API
+        4. Сохранение результатов в кэш с TTL 1 час (детали фильма меняются редко)
+
+        Args:
+            movie_id (int): Уникальный идентификатор фильма в TMDB.
+
+        Returns:
+            dict | None: Словарь с информацией о фильме или None, если фильм не найден.
+
+        Raises:
+            HTTPException: Если не удалось выполнить запрос к TMDB API.
+        """
+        cache_key = f"movie_detail:{movie_id}"
+
+        # Попытка получить данные из кэша Redis
+        cached = await self.redis.get(cache_key)
+        if cached:
+            logger.info(f"🟢 Cache HIT for movie ID {movie_id}")
+            return json.loads(cached)
+
+        # Если кэш отсутствует, выполняем запрос к внешнему API
+        logger.info(f"🟡 Cache MISS for movie ID {movie_id} -> Calling TMDB")
+        try:
+            response = await self.client.get(
+                f"/movie/{movie_id}",
+                params={
+                    "api_key": settings.TMDB_API_KEY,
+                    "language": "ru-RU"
+                }
+            )
+            # Если фильм не найден, возвращаем None
+            if response.status_code == 404:
+                logger.warning(f"Movie ID {movie_id} not found in TMDB")
+                return None
+
+            response.raise_for_status()
+        except httpx.HTTPError as e:
+            logger.error(f"TMDB Error: {e}")
+            raise HTTPException(status_code=502, detail="Movie provider unavailable")
+
+        data = response.json()
+
+        # Сохраняем результаты в кэш с более длительным TTL (3600 сек = 1 час)
+        # так как детали конкретного фильма меняются редко
+        await self.redis.set(cache_key, json.dumps(data), ex=3600)
+
+        return data

@@ -1,11 +1,11 @@
 from contextlib import asynccontextmanager
 import httpx
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from redis.asyncio import Redis
 
 from .config import settings
 from .service import MovieService
-from .schemas import MovieSearchResponse
+from .schemas import MovieSearchResponse, MovieDetail
 
 # Глобальный словарь для хранения подключений к внешним ресурсам
 resources = {}
@@ -76,3 +76,27 @@ async def search_handler(query: str, service: MovieService = Depends(get_service
     """
     results = await service.search_movies(query)
     return {"results": results}
+
+
+@app.get("/movies/{movie_id}", response_model=MovieDetail)
+async def get_movie_details(movie_id: int, service: MovieService = Depends(get_service)):
+    """
+    Получает детальную информацию о фильме по его ID.
+
+    Этот эндпоинт используется для межсервисного взаимодействия,
+    когда User Service нужно проверить существование фильма и получить его данные.
+
+    Args:
+        movie_id (int): Уникальный идентификатор фильма в TMDB.
+        service (MovieService): Сервис для работы с фильмами, внедряется через зависимость.
+
+    Returns:
+        MovieDetail: Детальная информация о фильме.
+
+    Raises:
+        HTTPException: 404 если фильм не найден, 502 если TMDB недоступен.
+    """
+    movie = await service.get_movie_by_id(movie_id)
+    if movie is None:
+        raise HTTPException(status_code=404, detail=f"Movie with ID {movie_id} not found")
+    return movie
