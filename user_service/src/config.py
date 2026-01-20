@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     # Секретный ключ для подписи JWT токенов (должен храниться в .env файле)
     SECRET_KEY: str
 
+    # URL Movie Service для межсервисного взаимодействия
+    MOVIE_SERVICE_URL: str = "http://movie_service:8000"
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 

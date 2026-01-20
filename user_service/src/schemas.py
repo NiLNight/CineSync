@@ -57,3 +57,47 @@ class Token(BaseModel):
     """
     access_token: str
     token_type: str
+
+
+class TokenData(BaseModel):
+    """
+    Схема для данных, извлеченных из JWT токена.
+
+    Attributes:
+        sub (str): Email пользователя (subject claim).
+        user_id (int): ID пользователя.
+    """
+    sub: str
+    user_id: int
+
+
+class FavoriteCreate(BaseModel):
+    """
+    Схема для добавления фильма в избранное.
+
+    Attributes:
+        movie_id (int): Уникальный идентификатор фильма в TMDB.
+    """
+    movie_id: int
+
+
+class FavoriteResponse(BaseModel):
+    """
+    Схема для ответа с информацией об избранном фильме.
+
+    Attributes:
+        id (int): ID записи в базе данных.
+        user_id (int): ID пользователя.
+        movie_id (int): ID фильма в TMDB.
+        movie_title (str): Название фильма.
+        movie_poster_path (str | None): Путь к постеру.
+        added_at (datetime): Дата добавления.
+    """
+    id: int
+    user_id: int
+    movie_id: int
+    movie_title: str
+    movie_poster_path: str | None
+    added_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
