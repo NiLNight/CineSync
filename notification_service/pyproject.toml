@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "notification-service"
+version = "0.1.0"
+description = ""
+authors = ["NiLNight <bkmz-2020@inbox.ru>"]
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+aio-pika = "^9.5.4"
+pydantic-settings = "^2.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
