@@ -60,6 +60,11 @@ class UserService:
         await self.db.commit()
         await self.db.refresh(new_user)
 
+        # Отправляем событие о регистрации (асинхронно, без ожидания подтверждения если нужно максимально быстро)
+        # В данном случае мы просто вызываем метод
+        from .events import publisher
+        await publisher.publish_user_created(new_user.id, new_user.email)
+
         return new_user
 
     async def authenticate_user(self, email: str, password: str) -> User | None:

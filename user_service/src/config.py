@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     # URL Movie Service для межсервисного взаимодействия
     MOVIE_SERVICE_URL: str = "http://movie_service:8000"
 
+    # URL RabbitMQ для асинхронных событий
+    RABBITMQ_URL: str = "amqp://guest:guest@rabbitmq:5672/"
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 

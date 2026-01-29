@@ -28,10 +28,15 @@ async def lifespan(app: FastAPI):
     # Инициализация HTTP клиента
     resources["http_client"] = httpx.AsyncClient()
 
+    # Подключение к RabbitMQ
+    from .events import publisher
+    await publisher.connect()
+
     yield
 
-    # Закрытие клиента
+    # Закрытие клиентов
     await resources["http_client"].aclose()
+    await publisher.close()
 
 
 app = FastAPI(title="User Service", lifespan=lifespan)
