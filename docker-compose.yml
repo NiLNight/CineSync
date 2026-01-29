@@ -34,6 +34,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - cinesync_net
 
@@ -47,6 +49,19 @@ services:
     depends_on:
       - movie_service
       - user_service
+    networks:
+      - cinesync_net
+
+  notification_service:
+    build:
+      context: ./notification_service
+      dockerfile: Dockerfile
+    container_name: cinesync_notification_service
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - cinesync_net
 
