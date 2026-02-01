@@ -13,9 +13,12 @@ services:
       - ./movie_service/.env
     environment:
       - REDIS_HOST=redis
+      - OTLP_GRPC_ENDPOINT=http://jaeger:4317
     depends_on:
       redis:
         condition: service_healthy
+      jaeger:
+        condition: service_started
     networks:
       - cinesync_net
 
@@ -31,11 +34,14 @@ services:
       - ./user_service/.env
     environment:
       - DATABASE_URL=postgresql+asyncpg://admin:admin_password@postgres:5432/cinesync_default
+      - OTLP_GRPC_ENDPOINT=http://jaeger:4317
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      jaeger:
+        condition: service_started
     networks:
       - cinesync_net
 
@@ -59,13 +65,26 @@ services:
     container_name: cinesync_notification_service
     environment:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - OTLP_GRPC_ENDPOINT=http://jaeger:4317
     depends_on:
       rabbitmq:
         condition: service_healthy
+      jaeger:
+        condition: service_started
     networks:
       - cinesync_net
 
   # === Infrastructure ===
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.60
+    container_name: cinesync_jaeger
+    ports:
+      - "16686:16686" # UI
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+    networks:
+      - cinesync_net
 
   postgres:
     image: postgres:16-alpine
@@ -81,7 +100,7 @@ services:
     networks:
       - cinesync_net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d cinesync_default"]
       interval: 5s
       timeout: 5s
       retries: 5
