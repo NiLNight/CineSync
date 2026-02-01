@@ -6,6 +6,14 @@ from redis.asyncio import Redis
 from .config import settings
 from .service import MovieService
 from .schemas import MovieSearchResponse, MovieDetail
+from .observability import setup_observability
+
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+from opentelemetry.instrumentation.redis import RedisInstrumentor
+
+# Настройка логирования и трейсинга
+logger = setup_observability("movie_service")
 
 # Глобальный словарь для хранения подключений к внешним ресурсам
 resources = {}
@@ -41,6 +49,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Movie Service", lifespan=lifespan)
+
+# Глобальный словарь для хранения подключений к внешним ресурсам
+resources = {}
 
 
 # Dependency Injection
@@ -100,3 +111,8 @@ async def get_movie_details(movie_id: int, service: MovieService = Depends(get_s
     if movie is None:
         raise HTTPException(status_code=404, detail=f"Movie with ID {movie_id} not found")
     return movie
+
+# Инструментация приложения (после определения всех эндпоинтов)
+HTTPXClientInstrumentor().instrument()
+RedisInstrumentor().instrument()
+FastAPIInstrumentor.instrument_app(app)

@@ -12,6 +12,15 @@ from .config import settings
 from .security import create_access_token
 from .dependencies import get_current_user
 from .models import User
+from .observability import setup_observability
+
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
+
+# Настройка логирования и трейсинга
+logger = setup_observability("user_service")
 
 # Глобальный словарь для хранения HTTP клиента
 resources = {}
@@ -40,6 +49,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="User Service", lifespan=lifespan)
+
+# Глобальный словарь для хранения HTTP клиента
+resources = {}
 
 
 @app.post("/register", response_model=UserResponse)
@@ -180,3 +192,10 @@ async def remove_favorite(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Favorite not found"
         )
+
+# Инструментация приложения (после определения всех эндпоинтов)
+HTTPXClientInstrumentor().instrument()
+from .database import engine
+SQLAlchemyInstrumentor().instrument(engine=engine.sync_engine)
+AioPikaInstrumentor().instrument()
+FastAPIInstrumentor.instrument_app(app)
