@@ -1,9 +1,9 @@
 import json
-import logging
 import aio_pika
+import structlog
 from .config import settings
 
-logger = logging.getLogger("uvicorn")
+logger = structlog.get_logger()
 
 class EventPublisher:
     """

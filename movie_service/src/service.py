@@ -6,7 +6,9 @@ from redis.asyncio import Redis
 
 from .config import settings
 
-logger = logging.getLogger("uvicorn")
+import structlog
+
+logger = structlog.get_logger()
 
 
 class MovieService:

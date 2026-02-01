@@ -1,12 +1,13 @@
 import asyncio
 import json
-import logging
-import aio_pika
 import os
+import aio_pika
+import structlog
+from observability import setup_observability
+from opentelemetry.instrumentation.aio_pika import AioPikaInstrumentor
 
-# Настройка логирования
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("notification_service")
+# Будет инициализировано в main
+logger = None
 
 RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/")
 
@@ -38,6 +39,10 @@ async def main():
     """
     Главный цикл сервиса.
     """
+    global logger
+    logger = setup_observability("notification_service")
+    AioPikaInstrumentor().instrument()
+
     connection = None
     while True:
         try:

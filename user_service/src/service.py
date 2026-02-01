@@ -8,6 +8,9 @@ from .models import User, Favorite
 from .schemas import UserCreate
 from .security import get_password_hash, verify_password
 from .config import settings
+import structlog
+
+logger = structlog.get_logger()
 
 
 class UserService:
