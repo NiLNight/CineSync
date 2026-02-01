@@ -8,6 +8,11 @@ authors = ["NiLNight <bkmz-2020@inbox.ru>"]
 python = ">=3.12,<3.13"
 aio-pika = "^9.5.4"
 pydantic-settings = "^2.12.0"
+structlog = "^24.4.0"
+opentelemetry-api = "^1.26.0"
+opentelemetry-sdk = "^1.26.0"
+opentelemetry-exporter-otlp = "^1.26.0"
+opentelemetry-instrumentation-aio-pika = "^0.47b0"
 
 [build-system]
 requires = ["poetry-core"]
