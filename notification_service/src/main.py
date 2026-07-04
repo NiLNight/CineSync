@@ -11,6 +11,13 @@ logger = None
 
 RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/")
 
+async def check_health() -> dict:
+    """Простая проверка работоспособности сервиса (Health Check)"""
+    # В будущем здесь может быть проверка подключения к RabbitMQ
+    logger = structlog.get_logger()
+    await logger.ainfo("Health check requested")
+    return {"status": "healthy", "service": "notification_service", "version": "1.0.0"}
+
 async def process_message(message: aio_pika.abc.AbstractIncomingMessage):
     """
     Обработка входящего сообщения.
